@@ -1,0 +1,31 @@
+name: Continuous Integration
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: "The commit of the release."
+        required: false
+
+jobs:
+  build:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      # https://github.com/actions/checkout
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.commit || github.sha }}
+
+      # https://github.com/actions/setup-go
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: go.mod
+
+      - name: Build and release application
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash .github/scripts/continuous-integration.bash
