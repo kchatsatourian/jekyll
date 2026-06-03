@@ -1,4 +1,4 @@
-FROM golang:1.26.2
+FROM golang:1.26.4
 
 LABEL \
     org.opencontainers.image.description="Jekyll is a simple port probing application written in Go." \
