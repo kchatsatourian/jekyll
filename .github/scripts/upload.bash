@@ -3,10 +3,7 @@
 set -o errexit
 set -o nounset
 
-PACKAGE=github.com/kchatsatourian/jekyll
-VERSION=$(go run jekyll.go --version)
-TAG="v${VERSION}"
-TITLE=${VERSION}
+VERSION=${TAG#v}
 # ARCHITECTURES=($(go tool dist list))
 ARCHITECTURES=(
     darwin/amd64
@@ -30,23 +27,18 @@ do
     GO_ARCH=$(cut --delimiter '/' --fields 2 <<< ${ARCHITECTURE})
     BINARY="jekyll-${GO_OS}-${GO_ARCH}"
 
-    if [[ ${GO_ARCH} == windows ]]
+    if [[ ${GO_OS} == windows ]]
     then
         BINARY+=".exe"
     fi
 
     echo "Building ${BINARY}..."
-    if [[ ${GO_ARCH} == armv6 ]]
-    then
-        CGO_ENABLED=0 GOOS=${GO_OS} GOARCH=arm GOARM=6 go build -a -ldflags '-extldflags "-static" -w' -o build/${BINARY} ${PACKAGE}
-    else
-        CGO_ENABLED=0 GOOS=${GO_OS} GOARCH=${GO_ARCH} go build -a -ldflags '-extldflags "-static" -w' -o build/${BINARY} ${PACKAGE}
-    fi
+    CGO_ENABLED=0 GOOS=${GO_OS} GOARCH=${GO_ARCH} go build -ldflags "-s -w -X main.version=${VERSION}" -o build/${BINARY} .
 
     echo "Generating ${BINARY}.sha256..."
     sha256sum build/${BINARY} > build/${BINARY}.sha256
 done
 
-gh release create "${TAG}" --generate-notes --title "${TITLE}" build/*
+gh release upload "${TAG}" build/*
 
 exit 0

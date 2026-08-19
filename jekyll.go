@@ -14,7 +14,7 @@ var (
 	protocol string
 	host     string
 	port     int
-	version  = "0.0.1"
+	version  = "development"
 )
 
 func main() {
