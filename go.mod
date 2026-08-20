@@ -1,6 +1,6 @@
 module github.com/kchatsatourian/jekyll
 
-go 1.23.4
+go 1.27.0
 
 require github.com/spf13/cobra v1.10.2
 
