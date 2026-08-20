@@ -1,0 +1,61 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release:
+        default: patch
+        description: "The type of release."
+        options:
+          - major
+          - minor
+          - patch
+        required: true
+        type: choice
+
+jobs:
+
+  create:
+    outputs:
+      tag: ${{ steps.create.outputs.tag }}
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      # https://github.com/actions/checkout
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ref: master
+
+      - name: Create release
+        id: create
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE: ${{ inputs.release }}
+        run: bash .github/scripts/create.bash
+
+  upload:
+    needs: create
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      # https://github.com/actions/checkout
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.create.outputs.tag }}
+
+      # https://github.com/actions/setup-go
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+
+      - name: Upload release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.create.outputs.tag }}
+        run: bash .github/scripts/upload.bash
